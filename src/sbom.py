@@ -82,3 +82,13 @@ def analyze(components: list[Component], vulnerabilities: list[Vulnerability], p
 
 def component_from_dict(item: dict[str, Any]) -> Component:
     return Component(**item)
+
+
+def summarize_findings(findings: list[Finding]) -> dict[str, Any]:
+    """Summarize policy decisions for CI without duplicating component data."""
+    return {
+        "finding_count": len(findings),
+        "fail_count": sum(item.decision == "fail" for item in findings),
+        "warn_count": sum(item.decision == "warn" for item in findings),
+        "top_priority": max((item.priority for item in findings), default=0.0),
+    }
