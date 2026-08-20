@@ -23,3 +23,13 @@ def test_unverified_transitive_dependency_is_explained():
     assert findings[0].decision == "warn"
     assert "unverified provenance" in findings[0].reasons
     assert "transitive dependency" in findings[0].reasons
+
+
+def test_package_matching_normalizes_case_and_separator():
+    findings = analyze(
+        [Component("Requests_HTTP", "2.31.0", direct=True)],
+        [Vulnerability("CVE-2024-0001", "requests-http", ("2.31.0",), "high")],
+        {"fail_threshold": 0.8},
+    )
+    assert len(findings) == 1
+    assert findings[0].package == "Requests_HTTP"
