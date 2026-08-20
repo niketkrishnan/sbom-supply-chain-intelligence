@@ -69,8 +69,12 @@ def analyze(components: list[Component], vulnerabilities: list[Vulnerability], p
         if component.provenance != "verified":
             priority += 0.1
             reasons.append("unverified provenance")
-        priority = min(round(priority, 4), 1.0)
         threshold = float(policy.get("fail_threshold", 0.8))
+        denied_licenses = {str(item).upper() for item in policy.get("denied_licenses", [])}
+        if component.license.upper() in denied_licenses:
+            reasons.append("license policy violation")
+            priority = max(priority, threshold)
+        priority = min(round(priority, 4), 1.0)
         decision = "fail" if priority >= threshold else "warn"
         findings.append(Finding(component.name, component.version, vuln.vuln_id, priority, tuple(reasons), decision))
     return sorted(findings, key=lambda item: item.priority, reverse=True)
