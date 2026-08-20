@@ -25,3 +25,7 @@ The MVP demonstrates component normalization, vulnerability matching, explainabl
 - Add SARIF output and a GitHub Actions policy gate.
 - Add provenance and package-health enrichment using approved public sources.
 - Add a package-name similarity detector for safe typosquatting fixtures.
+
+## Development milestones
+
+The repository history is organized into incremental documentation, implementation, testing, evaluation, and release milestones.
