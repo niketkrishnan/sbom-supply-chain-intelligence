@@ -33,3 +33,13 @@ def test_package_matching_normalizes_case_and_separator():
     )
     assert len(findings) == 1
     assert findings[0].package == "Requests_HTTP"
+
+
+def test_denied_license_fails_policy_even_for_low_severity_vulnerability():
+    findings = analyze(
+        [Component("demo", "1.0", direct=False, license="GPL-3.0")],
+        [Vulnerability("CVE-2024-0002", "demo", ("1.0",), "low")],
+        {"fail_threshold": 0.8, "denied_licenses": ["GPL-3.0"]},
+    )
+    assert findings[0].decision == "fail"
+    assert "license policy violation" in findings[0].reasons
