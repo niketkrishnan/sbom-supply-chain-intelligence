@@ -1,0 +1,12 @@
+{
+  "components": [
+    {"name":"requests","version":"2.31.0","direct":true,"criticality":0.8,"license":"Apache-2.0","provenance":"verified"},
+    {"name":"transitive-parser","version":"1.2.0","direct":false,"criticality":0.6,"license":"MIT","provenance":"unverified"},
+    {"name":"safe-lib","version":"4.0.0","direct":true,"criticality":0.3,"license":"MIT","provenance":"verified"}
+  ],
+  "vulnerabilities": [
+    {"vuln_id":"CVE-DEMO-0001","package":"requests","affected_versions":["2.31.0"],"severity":"high","exploitable":true},
+    {"vuln_id":"CVE-DEMO-0002","package":"transitive-parser","affected_versions":["1.2.0"],"severity":"medium","exploitable":false}
+  ],
+  "policy": {"fail_threshold":0.8}
+}
