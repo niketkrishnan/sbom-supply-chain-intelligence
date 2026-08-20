@@ -43,11 +43,16 @@ class Finding:
 SEVERITY_SCORE = {"low": 0.2, "medium": 0.5, "high": 0.8, "critical": 1.0}
 
 
+def normalize_component_name(name: str) -> str:
+    """Normalize common package spelling differences for deterministic matching."""
+    return name.strip().lower().replace("_", "-")
+
+
 def analyze(components: list[Component], vulnerabilities: list[Vulnerability], policy: dict[str, Any]) -> list[Finding]:
     findings: list[Finding] = []
-    by_package = {item.name: item for item in components}
+    by_package = {normalize_component_name(item.name): item for item in components}
     for vuln in vulnerabilities:
-        component = by_package.get(vuln.package)
+        component = by_package.get(normalize_component_name(vuln.package))
         if component is None or component.version not in vuln.affected_versions:
             continue
         reasons = [f"severity={vuln.severity}"]
