@@ -1,46 +1,53 @@
-# Software Supply-Chain Risk and SBOM Intelligence Platform
+# Software Supply-Chain Risk and SBOM Intelligence
 
 [![CI](https://github.com/niketkrishnan/sbom-supply-chain-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/niketkrishnan/sbom-supply-chain-intelligence/actions/workflows/ci.yml)
 
-A defensive dependency-security tool that consumes SBOM-style component data, matches vulnerabilities, considers direct versus transitive reachability and provenance, and emits explainable CI policy decisions.
+A dependency-risk engine that keeps the **reason for a CI decision** beside the finding. It normalizes SBOM-style components, distinguishes direct from transitive reachability, considers provenance and license policy, and emits machine-readable output for developer workflows.
 
-> **Authorized-use notice:** The starter version analyzes local fixture data and does not publish packages or modify registries.
+## Policy result from the committed fixture
 
-## Run locally
+The local report contains **3 components** and **2 findings**:
+
+| Package context | Priority | Decision | Why it matters |
+| --- | ---: | --- | --- |
+| `requests 2.31.0` direct dependency | 1.00 | fail | high severity, exploitable signal, directly reachable |
+| `transitive-parser 1.2.0` | 0.69 | warn | medium severity, transitive reachability, unverified provenance |
+
+The identifiers are deliberately marked `CVE-DEMO-*` in [`artifacts/supply_chain_report.json`](artifacts/supply_chain_report.json). They are local fixture labels, not a live advisory feed.
+
+## Reproduce the decision
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
 python -m pip install -e '.[dev]'
 python evaluate.py
 pytest
 ```
 
-## Current MVP
+The most useful review path is [`src/sbom.py`](src/sbom.py) → [`tests/test_sbom.py`](tests/test_sbom.py) → [`artifacts/supply_chain_report.json`](artifacts/supply_chain_report.json). The output explains why the policy is `fail` or `warn` instead of collapsing every issue into a severity-only list.
 
-The MVP demonstrates component normalization, vulnerability matching, explainable priority scoring, and fail/warn policy behavior. The fixture uses demo vulnerability identifiers and must not be presented as a live vulnerability feed.
+## A CI-oriented data path
 
-## Roadmap
+```mermaid
+flowchart LR
+    A[SBOM component input] --> B[Normalize package identity]
+    B --> C[Match local advisory fixture]
+    C --> D[Reachability + provenance + license context]
+    D --> E[Priority and policy decision]
+    E --> F[SARIF / JSON for CI]
+```
 
-- Generate CycloneDX or SPDX SBOMs from a pinned sample application.
-- Integrate a verified OSV feed with caching and rate-limit handling.
-- Add SARIF output and a GitHub Actions policy gate.
-- Add provenance and package-health enrichment using approved public sources.
-- Add a package-name similarity detector for safe typosquatting fixtures.
+The project is deliberately offline by default. A future OSV integration should be read-only, cached, rate-limit aware, and clearly separated from the deterministic policy engine.
 
-## Development milestones
+## Why this is more than a vulnerability list
 
-The repository history is organized into incremental documentation, implementation, testing, evaluation, and release milestones.
+The same severity can demand different developer action depending on directness, provenance, reachability, and policy. This repository demonstrates that context as code, tests, and explainable output.
 
+## Related security work
 
-## Reviewer quickstart
+- [Explainable AI SOC Detection](https://github.com/niketkrishnan/explainable-ai-soc) — evidence-backed triage.
+- [LLM Firewall and RAG Security Lab](https://github.com/niketkrishnan/llm-firewall-rag-security-lab) — AI application policy controls.
+- [Cloud Attack-Path Prioritizer](https://github.com/niketkrishnan/cloud-attack-path-prioritizer) — graph-ranked exposure.
+- [Identity Compromise Detector](https://github.com/niketkrishnan/identity-compromise-detector) — behavioral ML with privacy safeguards.
+- [Portfolio site](https://github.com/niketkrishnan/HTML-Website) — recruiter-facing overview.
 
-Run `python evaluate.py`, inspect `artifacts/supply_chain_report.json`, and review `src/sbom.py` plus `tests/test_sbom.py`. The platform shows how version matching, direct/transitive reachability, provenance, license policy, and SARIF export can feed a CI decision without hiding the reasons.
-
-## What I learned
-
-Supply-chain risk is contextual: severity alone is insufficient. Reachability, provenance, policy, and the delivery format all affect whether a finding can be acted upon by a developer or security engineer.
-
-## Limitations
-
-The demo identifiers and component data are local fixtures, not a live vulnerability feed. The engine does not replace license counsel, dependency review, verified advisory feeds, or build provenance attestations.
+For security concerns, use a private GitHub Security Advisory or contact [@niketkrishnan](https://github.com/niketkrishnan). Never include private dependency manifests or credentials in issues.
