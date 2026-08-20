@@ -1,0 +1,25 @@
+from sbom import Component, Vulnerability, analyze
+
+
+def test_prioritizes_exploitable_direct_dependency():
+    components = [Component("pkg", "1.0", True, criticality=0.9, provenance="verified")]
+    vulnerabilities = [Vulnerability("CVE-1", "pkg", ("1.0",), "high", exploitable=True)]
+    findings = analyze(components, vulnerabilities, {"fail_threshold": 0.8})
+    assert len(findings) == 1
+    assert findings[0].decision == "fail"
+    assert "known exploitable signal" in findings[0].reasons
+
+
+def test_unaffected_version_is_ignored():
+    components = [Component("pkg", "2.0", True)]
+    vulnerabilities = [Vulnerability("CVE-1", "pkg", ("1.0",), "critical", exploitable=True)]
+    assert analyze(components, vulnerabilities, {}) == []
+
+
+def test_unverified_transitive_dependency_is_explained():
+    components = [Component("pkg", "1.0", False, criticality=0.6, provenance="unverified")]
+    vulnerabilities = [Vulnerability("CVE-2", "pkg", ("1.0",), "medium")]
+    findings = analyze(components, vulnerabilities, {"fail_threshold": 0.99})
+    assert findings[0].decision == "warn"
+    assert "unverified provenance" in findings[0].reasons
+    assert "transitive dependency" in findings[0].reasons
