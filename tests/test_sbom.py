@@ -1,4 +1,4 @@
-from sbom import Component, Vulnerability, analyze
+from sbom import Component, Vulnerability, analyze, summarize_findings
 
 
 def test_prioritizes_exploitable_direct_dependency():
@@ -43,3 +43,17 @@ def test_denied_license_fails_policy_even_for_low_severity_vulnerability():
     )
     assert findings[0].decision == "fail"
     assert "license policy violation" in findings[0].reasons
+
+
+def test_finding_summary_counts_policy_decisions():
+    findings = analyze(
+        [Component("demo", "1.0", direct=True)],
+        [Vulnerability("CVE-2024-0003", "demo", ("1.0",), "critical")],
+        {"fail_threshold": 0.8},
+    )
+    assert summarize_findings(findings) == {
+        "finding_count": 1,
+        "fail_count": 1,
+        "warn_count": 0,
+        "top_priority": findings[0].priority,
+    }
