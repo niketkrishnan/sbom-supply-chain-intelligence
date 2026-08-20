@@ -92,3 +92,24 @@ def summarize_findings(findings: list[Finding]) -> dict[str, Any]:
         "warn_count": sum(item.decision == "warn" for item in findings),
         "top_priority": max((item.priority for item in findings), default=0.0),
     }
+
+
+def findings_to_sarif(findings: list[Finding]) -> dict[str, Any]:
+    """Convert explainable findings into a minimal SARIF 2.1.0 report."""
+    results = []
+    for finding in findings:
+        level = "error" if finding.decision == "fail" else "warning"
+        results.append({
+            "ruleId": finding.vuln_id,
+            "level": level,
+            "message": {"text": f"{finding.package} {finding.version}: {'; '.join(finding.reasons)}"},
+            "properties": {"priority": finding.priority, "decision": finding.decision},
+        })
+    return {
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [{
+            "tool": {"driver": {"name": "sbom-supply-chain-intelligence", "informationUri": "https://github.com/niketkrishnan/sbom-supply-chain-intelligence"}},
+            "results": results,
+        }],
+    }
